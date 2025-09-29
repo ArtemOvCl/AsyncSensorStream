@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import io from 'socket.io-client';
 import { Socket } from 'socket.io-client';
 
-import { fromEvent, map } from 'rxjs';
+import { filter, fromEvent, map } from 'rxjs';
 
 import { SensorData, SENSOR_DATA_EVENT } from '@shared/types/sensor-data';
 
@@ -35,8 +35,10 @@ export class SensorClientService implements OnModuleInit {
         map(data => ({
             ...data, 
             temperatureF: convertCelsiusToFahrenheit(data.temperature)
-        }))
-    ).subscribe({
+        })),
+        filter(data => data.temperature > 20)
+    )
+    .subscribe({
         next: data => console.log(`Received data: ${JSON.stringify(data)}`),
         error: err => console.error('Error in sensor data stream:', err),
         complete: () => console.log('Sensor data stream completed'),

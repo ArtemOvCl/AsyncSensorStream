@@ -16,11 +16,19 @@ export class SensorGateway implements OnGatewayInit{
 
         setInterval(() => {
 
-            const data = this.sensorService.generateData();
+            const data = this.sensorService.generateTemperatureData();
             data.forEach(sensorData => {
                 this.server.emit(SENSOR_DATA_EVENT, sensorData);
             })
         }, 2000);
+
+        setInterval(() => {
+
+            const data = this.sensorService.generateHumidityData();
+            data.forEach(sensorData => {
+                this.server.emit(SENSOR_DATA_EVENT, sensorData);
+            })
+        }, 4000);
         
     }
 }

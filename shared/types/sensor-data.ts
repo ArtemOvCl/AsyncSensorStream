@@ -1,7 +1,15 @@
-export interface SensorData {
+
+export interface BaseSensorData {
   sensorId: string;
-  temperature: number; // in Celsius
   timestamp: string;
+}
+
+export interface TemperatureSensorData extends BaseSensorData {
+  temperature: number;
+}
+
+export interface HumiditySensorData extends BaseSensorData {
+  humidity: number;
 }
 
 export const SENSOR_DATA_EVENT = 'sensorData';

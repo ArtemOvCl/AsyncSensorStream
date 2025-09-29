@@ -4,9 +4,9 @@ import * as dotenv from 'dotenv';
 import io from 'socket.io-client';
 import { Socket } from 'socket.io-client';
 
-import { filter, fromEvent, map } from 'rxjs';
+import { filter, fromEvent, map, merge } from 'rxjs';
 
-import { SensorData, SENSOR_DATA_EVENT } from '@shared/types/sensor-data';
+import { TemperatureSensorData, HumiditySensorData, SENSOR_DATA_EVENT } from '@shared/types/sensor-data';
 
 import { convertCelsiusToFahrenheit } from './sensor-client.util';
 
@@ -29,19 +29,24 @@ export class SensorClientService implements OnModuleInit {
   onModuleInit() {
     console.log('Socket client initialized');
 
-    const sensorStream$ = fromEvent<SensorData>(this.socket, SENSOR_DATA_EVENT);
+    const temperature$ = fromEvent<TemperatureSensorData>(this.socket, SENSOR_DATA_EVENT).pipe(
+      map(data => ({
+        ...data,
+        temperatureF: convertCelsiusToFahrenheit(data.temperature) , 
+      })),
+      filter(data => data.temperature > 20)
+    );
 
-    sensorStream$.pipe(
-        map(data => ({
-            ...data, 
-            temperatureF: convertCelsiusToFahrenheit(data.temperature)
-        })),
-        filter(data => data.temperature > 20)
-    )
-    .subscribe({
-        next: data => console.log(`Received data: ${JSON.stringify(data)}`),
-        error: err => console.error('Error in sensor data stream:', err),
-        complete: () => console.log('Sensor data stream completed'),
+    const humidity$ = fromEvent<HumiditySensorData>(this.socket, SENSOR_DATA_EVENT).pipe(
+      filter(data => data.humidity > 30) 
+    );
+
+    const sensorStream$ = merge(temperature$, humidity$);
+
+    sensorStream$.subscribe({
+      next: data => console.log(`📡 Received data: ${JSON.stringify(data)}`),
+      error: err => console.error('❌ Error in sensor data stream:', err),
+      complete: () => console.log('✅ Sensor data stream completed'),
     });
   }
 }

@@ -3,7 +3,7 @@ import { Server } from "socket.io";
 
 import { SensorService } from "./sensor-generator.service";
 
-const SENSOR_DATA_EVENT = 'sensorData';
+import { SENSOR_DATA_EVENT } from "@shared/types/sensor-data"
 
 @WebSocketGateway(3001)
 export class SensorGateway implements OnGatewayInit{

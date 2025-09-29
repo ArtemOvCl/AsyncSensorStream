@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-export interface SensorData {
-  sensorId: string;
-  temperature: number;
-  timestamp: string;
-}
+import { SensorData }  from '@shared/types/sensor-data'
 
 @Injectable()
 export class SensorService {
@@ -13,8 +9,13 @@ export class SensorService {
   generateData(): SensorData[] {
     return this.sensors.map(sensorId => ({
       sensorId,
-      temperature: +(20 + Math.random() * 10).toFixed(2),
+      temperature: this.getRandomTemperature(-10, 40),
       timestamp: new Date().toISOString(),
     }));
+  }
+
+  private getRandomTemperature(min: number, max: number): number {
+    const value = Math.random() * (max - min) + min;
+    return +value.toFixed(2);
   }
 }

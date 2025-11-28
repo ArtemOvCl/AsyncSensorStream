@@ -4,7 +4,7 @@ import { TemperatureSensorData, HumiditySensorData }  from '@shared/types/sensor
 
 @Injectable()
 export class SensorService {
-  private sensors = ['T-100', 'T-101', 'T-102'];
+  private sensors = ['S-100', 'S-101', 'S-102', 'S-103', 'S-104', 'S-105', 'S-106', 'S-107', 'S-108', 'S-109'];
 
   generateHumidityData(): HumiditySensorData[] {
     return this.sensors.map(sensorId => ({

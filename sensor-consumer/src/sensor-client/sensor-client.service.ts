@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import io from 'socket.io-client';
 import { Socket } from 'socket.io-client';
 
-import { bufferCount, debounceTime, filter, fromEvent, map, merge, mergeMap, reduce, skip, take } from 'rxjs';
+import { bufferCount, filter, fromEvent, map, merge, reduce, skip, take } from 'rxjs';
 
 import { TemperatureSensorData, HumiditySensorData, SENSOR_DATA_EVENT } from '@shared/types/sensor-data';
 
@@ -20,31 +20,35 @@ export class SensorClientService implements OnModuleInit {
     const wsUrl = process.env.WEBSOCKET_GATEWAY_URL;
 
     if (!wsUrl) {
-      throw new Error('WEBSOCKET_GATEWAY_URL is not defined in .env');
+      throw new Error('Error');
     }
 
     this.socket = io(wsUrl); 
   }
 
   onModuleInit() {
-    console.log('Socket client initialized');
 
     const temperature$ = fromEvent<TemperatureSensorData>(this.socket, SENSOR_DATA_EVENT).pipe(
       map(data => ({
         ...data,
-        temperatureF: convertCelsiusToFahrenheit(data.temperature) , 
+        temperature: convertCelsiusToFahrenheit(data.temperature) , 
       })),
       filter(data => data.temperature > 20),
-      skip(1),
+      skip(1), 
       bufferCount(2)
     );
-
+ 
     const humidity$ = fromEvent<HumiditySensorData>(this.socket, SENSOR_DATA_EVENT).pipe(
-      filter(data => data.humidity > 30),
-      take(1),
-      debounceTime(500),
-      reduce((acc, curr) => acc + curr.humidity, 0)
-      //mergeMap(data => [data, { ...data, comfortIndex: data.humidity * 0.8 }])
+      filter(data => data.humidity > 20),
+      take(4),
+      reduce(
+        (acc, curr) => ({
+        sum: acc.sum + curr.humidity,
+        count: acc.count + 1
+      }),
+      { sum: 0, count: 0 }
+      ),
+      map(acc => acc.sum / acc.count)
     );
 
     const sensorStream$ = merge(temperature$, humidity$);
